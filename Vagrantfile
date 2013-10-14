@@ -1,23 +1,14 @@
 Vagrant.configure("2") do |config|
-  config.berkshelf.enabled = true
-  config.omnibus.chef_version = :latest
-
   config.vm.box = "precise-server-cloudimg-amd64"
   config.vm.box_url = "http://cloud-images.ubuntu.com/vagrant/precise/current/precise-server-cloudimg-amd64-vagrant-disk1.box"
 
-  config.vm.synced_folder "..", "/chef-repo"
+  config.vm.network "private_network", ip: "192.168.50.4"
 
   config.vm.provider :virtualbox do |vb|
     vb.customize [
       "modifyvm", :id,
       "--memory", "2048",
       "--cpus", "2",
-    ]
-  end
-
-  config.vm.provision :chef_solo do |chef|
-    chef.run_list = [
-      "recipe[knife]"
     ]
   end
 end

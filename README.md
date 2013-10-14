@@ -49,6 +49,8 @@ knife role from file roles/*
 Bootstrap a standalone Cloudstack management server and kvm hypervisor
 ----------------------------------------------------------------------
 
+To test, boot the vagrant box in the root of the project to get a vanilla ubuntu 12.04 server on IP 192.168.50.4. When prompted, the root password is `vagrant`
+
 ```
-knife bootstrap ...
+knife bootstrap 192.168.50.4 -r 'role[cloudstack-standalone]'
 ```
