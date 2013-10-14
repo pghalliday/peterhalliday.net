@@ -1,0 +1,7 @@
+supports 'ubuntu', '= 12.04'
+depends 'apt'
+depends 'apparmor'
+depends 'mysql'
+depends 'sudo'
+depends 'nfs'
+depends 'iptables'

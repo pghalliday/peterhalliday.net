@@ -1,0 +1,11 @@
+iptables -A INPUT -m state --state NEW -p udp --dport 111 -j ACCEPT
+iptables -A INPUT -m state --state NEW -p tcp --dport 111 -j ACCEPT
+iptables -A INPUT -m state --state NEW -p tcp --dport 2049 -j ACCEPT
+iptables -A INPUT -m state --state NEW -p tcp --dport 32803 -j ACCEPT
+iptables -A INPUT -m state --state NEW -p udp --dport 32769 -j ACCEPT
+iptables -A INPUT -m state --state NEW -p tcp --dport 892 -j ACCEPT
+iptables -A INPUT -m state --state NEW -p udp --dport 892 -j ACCEPT
+iptables -A INPUT -m state --state NEW -p tcp --dport 875 -j ACCEPT
+iptables -A INPUT -m state --state NEW -p udp --dport 875 -j ACCEPT
+iptables -A INPUT -m state --state NEW -p tcp --dport 662 -j ACCEPT
+iptables -A INPUT -m state --state NEW -p udp --dport 662 -j ACCEPT
