@@ -11,7 +11,6 @@ Prerequisites
 - Download the organization validator key file and place in `.chef`
 - Download the organization `knife.rb` file and place in `.chef`
 - Download your user key file and place in `.chef`
-
 - [VirtualBox](https://www.virtualbox.org/wiki/Downloads)
 - [Vagrant](http://downloads.vagrantup.com/)
 - The Vagrant bindler plugin
