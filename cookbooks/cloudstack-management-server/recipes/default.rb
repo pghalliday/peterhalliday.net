@@ -13,8 +13,8 @@ package 'cloudstack-management'
 
 include_recipe 'mysql::server'
 
-template '/etc/mysql/conf.d/cloudstack.cnf' do
-  source 'cloudstack.cnf.erb'
+cookbook_file '/etc/mysql/conf.d/cloudstack.cnf' do
+  source 'cloudstack.cnf'
   mode 0644
   owner 'root'
   group 'root'
@@ -23,11 +23,11 @@ end
 
 bash 'create cloud database user' do
   code <<-EOH
-    cloudstack-setup-databases cloud:#{node[:cloudstack_manager][:cloud_db_password]}@localhost --deploy-as=root:#{node[:mysql][:server_root_password]}
+    cloudstack-setup-databases cloud:#{node[:cloudstack_management_server][:cloud_db_password]}@localhost --deploy-as=root:#{node[:mysql][:server_root_password]}
     EOH
 end
 
-if node[:cloudstack_manager][:is_also_kvm_hypervisor]
+if node[:cloudstack_management_server][:is_also_kvm_hypervisor]
   node.default[:authorization][:sudo][:sudoers_defaults] = ['cloud !requiretty']
   include_recipe 'sudo'
 end
@@ -38,35 +38,92 @@ bash 'set up and start management server' do
     EOH
 end
 
-node.default["nfs"]["port"]['statd'] = 662
-node.default["nfs"]["port"]['statd_out'] = 2020
-node.default["nfs"]["port"]['mountd'] = 892
-node.default["nfs"]["port"]['lockd'] = 32803
-include_recipe 'nfs::server'
+package "nfs-kernel-server"
+package "rpcbind"
+
+cookbook_file '/etc/network/if-pre-up.d/iptablesload' do
+  source 'iptablesload'
+  mode 0755
+  owner 'root'
+  group 'root'
+end
+
+cookbook_file '/etc/network/if-post-down.d/iptablessave' do
+  source 'iptablessave'
+  mode 0755
+  owner 'root'
+  group 'root'
+end
+
+bash 'configure iptables for nfs' do
+  code <<-EOH
+    iptables -A INPUT -m state --state NEW -p udp --dport 111 -j ACCEPT
+    iptables -A INPUT -m state --state NEW -p tcp --dport 111 -j ACCEPT
+    iptables -A INPUT -m state --state NEW -p tcp --dport 2049 -j ACCEPT
+    iptables -A INPUT -m state --state NEW -p tcp --dport 32803 -j ACCEPT
+    iptables -A INPUT -m state --state NEW -p udp --dport 32769 -j ACCEPT
+    iptables -A INPUT -m state --state NEW -p tcp --dport 892 -j ACCEPT
+    iptables -A INPUT -m state --state NEW -p udp --dport 892 -j ACCEPT
+    iptables -A INPUT -m state --state NEW -p tcp --dport 875 -j ACCEPT
+    iptables -A INPUT -m state --state NEW -p udp --dport 875 -j ACCEPT
+    iptables -A INPUT -m state --state NEW -p tcp --dport 662 -j ACCEPT
+    iptables -A INPUT -m state --state NEW -p udp --dport 662 -j ACCEPT
+    /etc/network/if-post-down.d/iptablessave
+    EOH
+  notifies :restart, 'service[nfs-kernel-server]', :delayed
+  notifies :restart, 'service[networking]', :delayed
+end
+
+cookbook_file '/etc/default/nfs-kernel-server' do
+  source 'nfs-kernel-server'
+  mode 0644
+  owner 'root'
+  group 'root'
+  notifies :restart, 'service[nfs-kernel-server]', :delayed
+  notifies :restart, 'service[networking]', :delayed
+end
+
+template '/etc/imapd.conf' do
+  source 'imapd.conf.erb'
+  mode 0644
+  owner 'root'
+  group 'root'
+  notifies :restart, 'service[nfs-kernel-server]', :delayed
+  notifies :restart, 'service[networking]', :delayed
+end
 
 directory "/export/primary" do
   owner "root"
   group "root"
-  mode 00644
+  mode 0755
   recursive true
 end
 
 directory "/export/secondary" do
   owner "root"
   group "root"
-  mode 00644
+  mode 0755
   recursive true
 end
 
-nfs_export "/exports" do
-  network '*'
-  writeable true 
-  sync false
-  options ['no_root_squash']
+cookbook_file '/etc/exports' do
+  source 'exports'
+  mode 0644
+  owner 'root'
+  group 'root'
+  notifies :restart, 'service[nfs-kernel-server]', :delayed
+  notifies :restart, 'service[networking]', :delayed
 end
 
-include_recipe 'iptables'
-iptables_rule 'nfs'
+service 'nfs-kernel-server' do
+  supports :restart => true
+  action :start
+end
+
+service 'networking' do
+  supports :restart => true
+  action :start
+end
 
 bash 'import KVM template' do
   code <<-EOH
