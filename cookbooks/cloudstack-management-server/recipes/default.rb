@@ -28,8 +28,9 @@ bash 'create cloud database user' do
 end
 
 if node[:cloudstack_management_server][:is_also_kvm_hypervisor]
-  node.default[:authorization][:sudo][:sudoers_defaults] = ['cloud !requiretty']
-  include_recipe 'sudo'
+  sudo 'cloud' do
+    template 'cloud.erb'
+  end
 end
 
 bash 'set up and start management server' do
