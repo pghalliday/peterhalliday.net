@@ -50,11 +50,17 @@ Bootstrap a standalone Cloudstack management server and kvm hypervisor
 ----------------------------------------------------------------------
 
 ```
-knife bootstrap cs.peterhalliday.net -r 'role[cloudstack-standalone]' -x pghalliday -P varsity1
+knife bootstrap cs.peterhalliday.net \
+-r 'role[cloudstack-standalone]' \
+-x username \
+-P password \
+--use-sudo-password \
+--sudo \
+--distro chef-full 
 ```
 
 to rerun the chef client
 
 ```
-knife ssh 'name:cs.peterhalliday.net' 'sudo chef-client' -x pghalliday -P varsity1
+knife ssh 'name:cs.peterhalliday.net' 'sudo chef-client' -x username -P password
 ```
