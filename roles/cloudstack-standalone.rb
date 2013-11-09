@@ -1,6 +1,5 @@
 name 'cloudstack-standalone'
 run_list(
-  'recipe[chef-client]',
   'recipe[cloudstack-kvm-hypervisor]',
   'recipe[cloudstack-management-server]'
 )
