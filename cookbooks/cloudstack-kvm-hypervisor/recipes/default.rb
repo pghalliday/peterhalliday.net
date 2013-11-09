@@ -1,6 +1,14 @@
 # disable apparmor
 include_recipe 'apparmor'
 
+package 'libshadow-ruby1.8'
+
+# set the root password so that this host can be added to cloudstack
+user 'root' do
+  password '$1$2vc3iN9X$KyDfzYMm6N58l1fWscNCV/'
+  action :modify
+end
+
 apt_repository 'cloudstack' do
   uri          'http://cloudstack.apt-get.eu/ubuntu'
   distribution 'precise'
